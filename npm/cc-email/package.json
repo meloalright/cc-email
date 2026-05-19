@@ -1,0 +1,32 @@
+{
+  "name": "cc-email",
+  "version": "0.1.0",
+  "description": "A local-first email listener for coding agents",
+  "homepage": "https://github.com/meloalright/cc-email",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/meloalright/cc-email.git"
+  },
+  "license": "MIT",
+  "bin": {
+    "cc-email": "run.js"
+  },
+  "scripts": {
+    "postinstall": "node install.js"
+  },
+  "files": [
+    "bin",
+    "install.js",
+    "run.js"
+  ],
+  "keywords": [
+    "email",
+    "coding-agent",
+    "claude",
+    "imap",
+    "smtp",
+    "cli",
+    "ai-agent"
+  ],
+  "author": "meloalright"
+}

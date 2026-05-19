@@ -1,0 +1,26 @@
+[Unit]
+Description=cc-email - Email listener for coding agents
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=cc-email
+Group=cc-email
+ExecStart=/usr/local/bin/cc-email listen --config /etc/cc-email/cc-email.toml
+Restart=on-failure
+RestartSec=10
+WorkingDirectory=/var/lib/cc-email
+
+# Security hardening
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/cc-email
+PrivateTmp=yes
+
+# Environment
+EnvironmentFile=-/etc/cc-email/env
+
+[Install]
+WantedBy=multi-user.target

@@ -120,7 +120,12 @@ mod tests {
         let task = Task::new("<upd>".into(), "u@t.com".into(), "S".into(), "P".into());
         store.insert(&task).unwrap();
         store
-            .update_status(&task.id, TaskStatus::Completed, Some("done"), Some("/tmp/log"))
+            .update_status(
+                &task.id,
+                TaskStatus::Completed,
+                Some("done"),
+                Some("/tmp/log"),
+            )
             .unwrap();
     }
 }

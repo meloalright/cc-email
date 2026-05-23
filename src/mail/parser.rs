@@ -59,12 +59,7 @@ pub fn parse_email(raw: &[u8]) -> Result<ParsedEmail> {
 mod tests {
     use super::*;
 
-    fn make_raw(
-        msg_id: &str,
-        from: &str,
-        subject: &str,
-        body: &str,
-    ) -> Vec<u8> {
+    fn make_raw(msg_id: &str, from: &str, subject: &str, body: &str) -> Vec<u8> {
         format!(
             "Message-ID: {}\r\nFrom: {}\r\nSubject: {}\r\nContent-Type: text/plain\r\n\r\n{}",
             msg_id, from, subject, body

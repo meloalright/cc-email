@@ -300,3 +300,109 @@ impl Config {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const MINIMAL_TOML: &str = r#"
+[inbox]
+type = "imap"
+host = "imap.example.com"
+port = 993
+username = "user@example.com"
+password = "secret"
+
+[outbox]
+type = "smtp"
+host = "smtp.example.com"
+port = 587
+username = "user@example.com"
+password = "secret"
+from = "user@example.com"
+
+[agent]
+type = "claude-code"
+command = "claude"
+"#;
+
+    #[test]
+    fn test_parse_minimal_config() {
+        let config: Config = toml::from_str(MINIMAL_TOML).unwrap();
+        assert_eq!(config.inbox.host, "imap.example.com");
+        assert_eq!(config.outbox.port, 587);
+        assert_eq!(config.agent.agent_type, "claude-code");
+    }
+
+    #[test]
+    fn test_defaults_applied() {
+        let config: Config = toml::from_str(MINIMAL_TOML).unwrap();
+        assert_eq!(config.inbox.folder, "INBOX");
+        assert_eq!(config.inbox.poll_interval_seconds, 30);
+        assert_eq!(config.agent.timeout_seconds, 300);
+        assert_eq!(config.agent.permission_mode, "auto");
+        assert_eq!(config.agent.permission_default, "deny");
+        assert_eq!(config.security.max_body_bytes, 20_000);
+        assert_eq!(config.display.max_output_chars, 8000);
+        assert!(!config.display.show_thinking);
+        assert!(config.display.show_tool_use);
+    }
+
+    #[test]
+    fn test_validate_empty_inbox_host() {
+        let toml_str = MINIMAL_TOML.replace("imap.example.com", "");
+        let config: Config = toml::from_str(&toml_str).unwrap();
+        assert!(config.validate().is_err());
+    }
+
+    #[test]
+    fn test_validate_empty_outbox_host() {
+        let toml_str = MINIMAL_TOML.replace("smtp.example.com", "");
+        let config: Config = toml::from_str(&toml_str).unwrap();
+        assert!(config.validate().is_err());
+    }
+
+    #[test]
+    fn test_validate_command_agent_needs_command() {
+        let toml_str = MINIMAL_TOML
+            .replace("claude-code", "command")
+            .replace("command = \"claude\"", "command = \"\"");
+        let config: Config = toml::from_str(&toml_str).unwrap();
+        assert!(config.validate().is_err());
+    }
+
+    #[test]
+    fn test_resolve_password_direct() {
+        let config: Config = toml::from_str(MINIMAL_TOML).unwrap();
+        assert_eq!(config.inbox.resolve_password().unwrap(), "secret");
+    }
+
+    #[test]
+    fn test_resolve_password_env() {
+        std::env::set_var("CC_TEST_PW_UNIT", "from_env");
+        let toml_str = MINIMAL_TOML.replace(
+            "password = \"secret\"\n\n[outbox]",
+            "password_env = \"CC_TEST_PW_UNIT\"\n\n[outbox]",
+        );
+        let config: Config = toml::from_str(&toml_str).unwrap();
+        assert_eq!(config.inbox.resolve_password().unwrap(), "from_env");
+        std::env::remove_var("CC_TEST_PW_UNIT");
+    }
+
+    #[test]
+    fn test_resolve_password_missing_env() {
+        let toml_str = MINIMAL_TOML.replace(
+            "password = \"secret\"\n\n[outbox]",
+            "password_env = \"CC_TEST_NOEXIST\"\n\n[outbox]",
+        );
+        let config: Config = toml::from_str(&toml_str).unwrap();
+        assert!(config.inbox.resolve_password().is_err());
+    }
+
+    #[test]
+    fn test_resolve_password_none_configured() {
+        let toml_str = MINIMAL_TOML.replace("password = \"secret\"\n\n[outbox]", "\n[outbox]");
+        let config: Config = toml::from_str(&toml_str).unwrap();
+        assert!(config.inbox.resolve_password().is_err());
+    }
+}

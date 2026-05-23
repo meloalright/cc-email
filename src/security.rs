@@ -53,3 +53,79 @@ impl SecurityGuard {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn guard(senders: Vec<&str>) -> SecurityGuard {
+        SecurityGuard::new(SecurityConfig {
+            allowed_senders: senders.into_iter().map(String::from).collect(),
+            max_body_bytes: 100,
+            max_attachment_bytes: 500,
+            ..Default::default()
+        })
+    }
+
+    #[test]
+    fn test_allowed_sender_passes() {
+        let g = guard(vec!["alice@example.com"]);
+        assert!(g.validate_sender("alice@example.com").is_ok());
+    }
+
+    #[test]
+    fn test_sender_case_insensitive() {
+        let g = guard(vec!["Alice@Example.COM"]);
+        assert!(g.validate_sender("alice@example.com").is_ok());
+    }
+
+    #[test]
+    fn test_rejected_sender() {
+        let g = guard(vec!["alice@example.com"]);
+        assert!(g.validate_sender("bob@example.com").is_err());
+    }
+
+    #[test]
+    fn test_empty_allowlist_permits_all() {
+        let g = guard(vec![]);
+        assert!(g.validate_sender("anyone@example.com").is_ok());
+    }
+
+    #[test]
+    fn test_valid_body() {
+        let g = guard(vec![]);
+        assert!(g.validate_body("hello world").is_ok());
+    }
+
+    #[test]
+    fn test_empty_body_rejected() {
+        let g = guard(vec![]);
+        assert!(g.validate_body("   ").is_err());
+    }
+
+    #[test]
+    fn test_oversized_body_rejected() {
+        let g = guard(vec![]);
+        let body = "x".repeat(101);
+        assert!(g.validate_body(&body).is_err());
+    }
+
+    #[test]
+    fn test_body_at_exact_limit() {
+        let g = guard(vec![]);
+        let body = "x".repeat(100);
+        assert!(g.validate_body(&body).is_ok());
+    }
+
+    #[test]
+    fn test_attachment_within_limit() {
+        let g = guard(vec![]);
+        assert!(g.validate_attachment_size(500).is_ok());
+    }
+
+    #[test]
+    fn test_attachment_over_limit() {
+        let g = guard(vec![]);
+        assert!(g.validate_attachment_size(501).is_err());
+    }
+}

@@ -81,3 +81,46 @@ impl TaskStore {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn tmp_store() -> TaskStore {
+        TaskStore::open(":memory:").unwrap()
+    }
+
+    #[test]
+    fn test_open_and_migrate() {
+        let store = tmp_store();
+        assert!(!store.is_processed("<nonexistent>").unwrap());
+    }
+
+    #[test]
+    fn test_insert_and_is_processed() {
+        let store = tmp_store();
+        let task = Task::new("<msg1>".into(), "u@t.com".into(), "S".into(), "P".into());
+        store.insert(&task).unwrap();
+        assert!(store.is_processed("<msg1>").unwrap());
+        assert!(!store.is_processed("<msg2>").unwrap());
+    }
+
+    #[test]
+    fn test_duplicate_insert_fails() {
+        let store = tmp_store();
+        let task = Task::new("<dup>".into(), "u@t.com".into(), "S".into(), "P".into());
+        store.insert(&task).unwrap();
+        let task2 = Task::new("<dup>".into(), "u@t.com".into(), "S".into(), "P".into());
+        assert!(store.insert(&task2).is_err());
+    }
+
+    #[test]
+    fn test_update_status() {
+        let store = tmp_store();
+        let task = Task::new("<upd>".into(), "u@t.com".into(), "S".into(), "P".into());
+        store.insert(&task).unwrap();
+        store
+            .update_status(&task.id, TaskStatus::Completed, Some("done"), Some("/tmp/log"))
+            .unwrap();
+    }
+}

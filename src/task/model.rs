@@ -66,3 +66,53 @@ impl Task {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_status_roundtrip() {
+        for status in [
+            TaskStatus::Pending,
+            TaskStatus::Running,
+            TaskStatus::Completed,
+            TaskStatus::Failed,
+        ] {
+            assert_eq!(TaskStatus::parse(status.as_str()), status);
+        }
+    }
+
+    #[test]
+    fn test_status_display() {
+        assert_eq!(format!("{}", TaskStatus::Completed), "completed");
+        assert_eq!(format!("{}", TaskStatus::Failed), "failed");
+    }
+
+    #[test]
+    fn test_unknown_status_defaults_to_pending() {
+        assert_eq!(TaskStatus::parse("unknown"), TaskStatus::Pending);
+    }
+
+    #[test]
+    fn test_task_new_defaults() {
+        let task = Task::new(
+            "<msg@test>".into(),
+            "user@test.com".into(),
+            "Test".into(),
+            "do something".into(),
+        );
+        assert_eq!(task.status, TaskStatus::Pending);
+        assert_eq!(task.from, "user@test.com");
+        assert!(task.result_summary.is_none());
+        assert!(task.raw_log_path.is_none());
+        assert!(!task.id.is_empty());
+    }
+
+    #[test]
+    fn test_task_ids_are_unique() {
+        let t1 = Task::new("<a>".into(), "u".into(), "s".into(), "p".into());
+        let t2 = Task::new("<b>".into(), "u".into(), "s".into(), "p".into());
+        assert_ne!(t1.id, t2.id);
+    }
+}

@@ -1,4 +1,6 @@
-![image](https://github.com/user-attachments/assets/a2aadd21-4daa-47d4-b06f-9531b7ae87cf)
+<div align="center">
+ <img height="200" alt="cc-email logo" src="https://github.com/user-attachments/assets/a2aadd21-4daa-47d4-b06f-9531b7ae87cf" />
+</div>
 
 # cc-email
 

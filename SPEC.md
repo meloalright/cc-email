@@ -1667,7 +1667,7 @@ tests/
 
 Legend: [x] done, [~] partial, [ ] todo
 
-### v0.0.2 — Core (current)
+### v0.0.4 — Core (current)
 - [x] Engine struct orchestrator
 - [x] Gmail IMAP/SMTP (primary supported provider)
 - [x] Claude Code stream-json agent (primary supported agent)
@@ -1725,3 +1725,5 @@ Legend: [x] done, [~] partial, [ ] todo
 - v0.0.2: Trimmed to 3 commands only: /new, /doctor, /help — all other command dispatch removed from engine
 - v0.0.2: Removed unused `usage` field from Engine struct
 - v0.0.2: Cleaned up dead integration tests
+- v0.0.3: README updates, removed Dockerfile, moved config to ~/.cc-email/
+- v0.0.4: Squashed history to remove private info, added 33 unit tests (security, config, task, mail parser)
